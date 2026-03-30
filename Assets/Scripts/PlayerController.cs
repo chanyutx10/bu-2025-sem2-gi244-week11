@@ -15,10 +15,8 @@ public class PlayerController : MonoBehaviour
     private InputAction smashAction;
     private InputAction breakAction;
 
-    public bool hasPowerUp  = false;
+    public bool hasPowerUp = false;
 
-
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
@@ -27,17 +25,15 @@ public class PlayerController : MonoBehaviour
         breakAction = InputSystem.actions.FindAction("Break");
     }
 
-    // Update is called once per frame
     void Update()
     {
-
         var move = moveAction.ReadValue<Vector2>();
         rb.AddForce(move.y * speed * focalPoint.forward);
+        rb.AddForce(move.x * speed * focalPoint.right);
         if (breakAction.IsPressed())
-       {
+        {
             rb.linearVelocity = Vector3.zero;
-        }   
-
+        }
     }
 
     private void OnCollisionEnter(Collision collision)
@@ -48,12 +44,10 @@ public class PlayerController : MonoBehaviour
             {
                 var rb = collision.gameObject.GetComponent<Rigidbody>();
                 var dir = collision.transform.position - transform.position;
-                rb.AddForce(100*Vector3.up , ForceMode.Impulse);
+                rb.AddForce(100 * Vector3.up, ForceMode.Impulse);
             }
         }
     }
-
-
 
     private void OnTriggerEnter(Collider other)
     {
@@ -63,11 +57,21 @@ public class PlayerController : MonoBehaviour
             Destroy(other.gameObject);
 
             if (countdownRoutine != null)
-
             {
                 StopCoroutine(countdownRoutine);
             }
             StartCoroutine(PowerUpCountDown());
+        }
+
+        if (other.CompareTag("StunPowerUp"))
+        {
+            Destroy(other.gameObject);
+
+            Enemy[] allEnemies = FindObjectsByType<Enemy>(FindObjectsSortMode.None);
+            foreach (Enemy enemy in allEnemies)
+            {
+                enemy.Stun(5f);
+            }
         }
     }
 
